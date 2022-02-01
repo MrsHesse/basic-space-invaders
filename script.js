@@ -41,6 +41,7 @@ var aliencolumn = 1;
 const aliens_per_row = 10;
 const aliens_rows = 3;
 var aliens_direction = +1;
+var remaining_aliens = aliens_rows*aliens_per_row;
 
 for(let r=alienrow; r<aliens_rows; r++)
 {
@@ -79,7 +80,7 @@ function moveAliens(){
     // moving down - start at bottom row then move up
     // new bottom line
     
-    for( let r=alienrow+aliens_rows; r>=alienrow;r--){
+    for( let r=alienrow+aliens_rows-1; r>=alienrow;r--){
       for (let c=aliencolumn; c<aliencolumn+aliens_per_row; c++){
         if(grid[r][c].classList.contains("alien"))
         {
@@ -124,10 +125,12 @@ function moveAliens(){
 }
 
 
-var interval = setInterval(function(){
+var aliens_interval;
+aliens_interval = setInterval(function(){
   if ( !moveAliens()){
-    clearInterval(interval);
+    clearInterval(aliens_interval);
   }
+  checkForGameOver();
 }, 400);
 
 // set gun position
@@ -181,14 +184,13 @@ function moveBullets(){
 // check if any aliens have been hit and destroy them
 function checkForHits(){
 
-  console.log("checkForHits()")
   // find all tiles which have class alien and bullet
   const hits = document.getElementsByClassName("alien bullet");
 
-  console.log("      " + hits.length + " hits found")
   Array.from(hits).forEach( function(hit){
     // remove the alien and bullet class from the tile
-    hit.classList.remove('alien', 'bullet')
+    hit.classList.remove('alien', 'bullet');
+    remaining_aliens--;
 
     // remove the bullet from the list
     // cant't do as we do not have the bullet grid.
@@ -197,12 +199,15 @@ function checkForHits(){
 
   });
   
-
 }
 
-var bulletinterval = setInterval(function(){
+
+
+var bulletinterval;
+bulletinterval = setInterval(function(){
   moveBullets();
   checkForHits();
+  checkForGameOver();
 }, 400);
 
 
@@ -229,3 +234,40 @@ document.addEventListener('keyup', event => {
     fire();
   }
 });
+
+
+function updateScore(){
+  const score = document.getElementById("score");
+  score.innerHTML = "score : " +  (aliens_rows*aliens_per_row - remaining_aliens);
+
+}
+
+
+// game is over if 
+// the gun is overlapping and alien OR
+// the aliens reach the bottom
+function isGameOver(){
+  var guntile = grid[gunrow][guncolumn];
+
+  if (guntile.classList.contains("alien")){
+    guntile.classList.remove("alien", "gun");
+    guntile.classList.add("explode");
+    return true;
+  }
+
+  // also game over if the aliens reach the bottom
+  return ( rows <= alienrow+aliens_rows);
+}
+
+function checkForGameOver(){
+  updateScore()
+  if (isGameOver()){
+    clearInterval(aliens_interval);  
+    clearInterval(bulletinterval);  
+
+    document.getElementById("gameover").style.visibility = "visible";
+  }
+}
+
+
+    
