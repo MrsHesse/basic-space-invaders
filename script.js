@@ -74,26 +74,47 @@ function moveAliens(){
     xoffset=aliens_direction;
   }
 
+
   if (yoffset>0){
-    // if moving down remove current top line and add
+    // moving down - start at bottom row then move up
     // new bottom line
-    for (let c=aliencolumn; c<aliencolumn+aliens_per_row; c++){
-      grid[alienrow][c].classList.remove("alien");
-      grid[alienrow+aliens_rows][c].classList.add("alien");
+    
+    for( let r=alienrow+aliens_rows; r>=alienrow;r--){
+      for (let c=aliencolumn; c<aliencolumn+aliens_per_row; c++){
+        if(grid[r][c].classList.contains("alien"))
+        {
+          grid[r+1][c].classList.add("alien");
+        } else {
+          grid[r+1][c].classList.remove("alien");
+        }
+        // remove the previous alien status
+        grid[r][c].classList.remove("alien");
+      }
     }
     alienrow++;
   } else if (xoffset>0) {
-    // remove aliens on the left and add aliens on the right
+    // moving right
+    // start on the right column
+    // move the alien status to the next tile on the right
     for(let r=alienrow; r<alienrow+aliens_rows; r++){
-      grid[r][aliencolumn].classList.remove("alien");
-      grid[r][aliencolumn+aliens_per_row].classList.add("alien");
+      for (let c=aliencolumn+aliens_per_row-1; c>=aliencolumn; c--){
+        if(grid[r][c].classList.contains("alien") ){
+          grid[r][c+1].classList.add("alien");
+        }
+        grid[r][c].classList.remove("alien");
+      }
     }
     aliencolumn++;
   } else {
     // remove aliens on the right and add aliens on the left
     for(let r=alienrow; r<alienrow+aliens_rows; r++){
-      grid[r][aliencolumn-1].classList.add("alien");
-      grid[r][aliencolumn+aliens_per_row-1].classList.remove("alien");
+      for (let c=aliencolumn; c<aliencolumn+aliens_per_row; c++){
+        // set tile to the right to the same alien status
+        if(grid[r][c].classList.contains("alien") ){
+          grid[r][c-1].classList.add("alien");
+        }
+        grid[r][c].classList.remove("alien");
+      }
     }
     aliencolumn--;
   }
@@ -115,7 +136,77 @@ var guncolumn = 7;
 grid[gunrow][guncolumn].classList.add("gun")
 
 
-// move the gun
+// list of bullets
+var bullets=[]
+
+// fire a bullet
+function fire(){
+  // add a bullet in tile above the current gun location
+  grid[gunrow-1][guncolumn].classList.add("bullet")
+
+  // add the bullet to the current list of bullets
+  bullets.push([gunrow-1,guncolumn])
+}
+
+// move all the bullets up one square
+// return a list of alien tiles that have been hit
+// return [] if no hits
+function moveBullets(){
+  var newbullets=[];
+
+  bullets.forEach(function(bullet) {
+    var r = bullet[0];
+    var c = bullet[1];
+
+    if (r>=0){
+      console.log("bullet " + bullet);
+      var btile = grid[r][c];
+
+      if (btile.classList.contains('bullet')){
+        btile.classList.remove("bullet")
+        r-=1;
+        
+        if(r>=0){
+          grid[r][c].classList.add("bullet");
+          newbullets.push([r,c]);
+        }  
+      }
+    }
+    
+  });
+
+  bullets=newbullets;
+}
+
+// check if any aliens have been hit and destroy them
+function checkForHits(){
+
+  console.log("checkForHits()")
+  // find all tiles which have class alien and bullet
+  const hits = document.getElementsByClassName("alien bullet");
+
+  console.log("      " + hits.length + " hits found")
+  Array.from(hits).forEach( function(hit){
+    // remove the alien and bullet class from the tile
+    hit.classList.remove('alien', 'bullet')
+
+    // remove the bullet from the list
+    // cant't do as we do not have the bullet grid.
+    // use moveBullet - remove bullet from list if the 
+    // bullet class no longer exists at that grid location.
+
+  });
+  
+
+}
+
+var bulletinterval = setInterval(function(){
+  moveBullets();
+  checkForHits();
+}, 400);
+
+
+// move the gun and shoot
 document.addEventListener('keyup', event => {
   
   if (event.code === 'ArrowLeft') {
@@ -135,5 +226,6 @@ document.addEventListener('keyup', event => {
   
   if (event.code === 'Space') {
     console.log('Space pressed');
+    fire();
   }
 });
