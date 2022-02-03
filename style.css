@@ -26,17 +26,31 @@ h1{
   
 }
 
+
+/*
+.alien.bullet{
+  background-image:url("explode1.gif");
+}
+*/
+
 .alien{
-  background:red;
-  border-radius:10px;
+  /*background:red;*/
+  
+  background-image:url("alien.gif");
+  
 }
 
-.gun{
-  background:blueviolet;
-}
 
 .bullet{
-  background:yellow;
+  /*background:yellow;*/
+  background-image:url("bullet.gif");
+}
+
+
+
+.gun{
+  /*background:blueviolet;*/
+  background-image:url("gun.gif");
 }
 
 .gameover{
